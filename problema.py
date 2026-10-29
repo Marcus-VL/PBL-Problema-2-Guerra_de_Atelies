@@ -49,10 +49,9 @@ def verifpreenchimento(numcasas, sentido, matriz):
 
 	return japreenchido
 
-def preencher(linha, coluna, elemento, sentido, numcasas, matriz, listapreenchidos, jogador="player"):
-	global nelmos, narmadura, ncapas, nasas, limite
+def preencher(linha, coluna, elemento, sentido, numcasas, matriz, listapreenchidos, jogador):
+	global nelmos, nelmosbot, narmadura, narmadurabot, ncapas, ncapasbot, nasas, nasasbot, limite
 	japreenchido = False
-	elemento_preenchido = linha + coluna/10
 
 	limite = False
 	if (((sentido == 1 and linha+numcasas-1 > grade) or (sentido == 2 and coluna+numcasas-1 > grade)) or (linha == 0 or coluna == 0)):
@@ -68,8 +67,13 @@ def preencher(linha, coluna, elemento, sentido, numcasas, matriz, listapreenchid
 				japreenchido = verifpreenchimento(numcasas, sentido, matriz)
 				if japreenchido == False:
 					matriz[linha-1][coluna-1] = elemento
-					elemento_preenchido*=10
-					nelmos -= 1
+					if jogador == "player":
+						posicionados["elmosply"].append((linha, coluna))
+						nelmos -= 1
+					elif jogador == "bot":
+						posicionados["elmosbot"].append((linha, coluna))
+						nelmosbot -= 1
+
 
 			#CAPA
 			case "#":
@@ -81,8 +85,13 @@ def preencher(linha, coluna, elemento, sentido, numcasas, matriz, listapreenchid
 						if japreenchido == False:
 							matriz[linha-1][coluna-1] = elemento
 							matriz[linha][coluna-1] = elemento
-							elemento_preenchido += (linha+1)/100 + (coluna)/1000
-							ncapas -= 1
+							if jogador == "player":
+								posicionados["capasply"].append([(linha, coluna), (linha+1, coluna)])
+								ncapas -= 1
+							elif jogador == "bot":
+								posicionados["capasbot"].append([(linha, coluna), (linha+1, coluna)])
+								ncapasbot -= 1
+							
 						else:
 							print("O espaço selecionado já está ocupado")
 					elif sentido == 2:
@@ -92,13 +101,15 @@ def preencher(linha, coluna, elemento, sentido, numcasas, matriz, listapreenchid
 						if japreenchido == False:
 							matriz[linha-1][coluna-1] = elemento
 							matriz[linha-1][coluna] = elemento
-							elemento_preenchido += (linha)/100 + (coluna+1)/1000
-							ncapas -= 1
+							if jogador == "player":
+								posicionados["capasply"].append([(linha, coluna), (linha, coluna+1)])
+								ncapas -= 1
+							elif jogador == "bot":
+								posicionados["capasbot"].append([(linha, coluna), (linha, coluna+1)])
+								ncapasbot -=1
 						else:
 							print("O espaço selecionado já está ocupado")
 
-					elemento_preenchido *= 1000
-						
 				else:
 					print("Entrada de sentido inválida")
 
@@ -113,8 +124,13 @@ def preencher(linha, coluna, elemento, sentido, numcasas, matriz, listapreenchid
 							matriz[linha-1][coluna-1] = elemento
 							matriz[linha][coluna-1] = elemento
 							matriz[linha+1][coluna-1] = elemento
-							elemento_preenchido += (linha+1)/100 + (coluna)/1000 + (linha+2)/10000 + (coluna)/100000
-							narmadura -= 1
+							if jogador == "player":
+								posicionados["armadurasply"].append([(linha, coluna), (linha+1, coluna), (linha+2,coluna)])
+								narmadura -= 1
+							elif jogador == "bot":
+								posicionados["armadurasbot"].append([(linha, coluna), (linha+1, coluna), (linha+2,coluna)])
+								narmadurabot -= 1
+							
 						else:
 							print("O espaço selecionado já está ocupado")
 					elif sentido ==2:
@@ -124,11 +140,14 @@ def preencher(linha, coluna, elemento, sentido, numcasas, matriz, listapreenchid
 							matriz[linha-1][coluna-1] = elemento
 							matriz[linha-1][coluna] = elemento
 							matriz[linha-1][coluna+1] = elemento
-							elemento_preenchido += (linha/100) + (coluna+1)/1000 + (linha/10000)+(coluna+2)/100000
-							narmadura -= 1
+							if jogador == "player":
+								posicionados["armadurasply"].append([(linha, coluna), (linha, coluna+1), (linha, coluna+2)])
+								narmadura -= 1
+							elif jogador == "bot":
+								posicionados["armadurasbot"].append([(linha, coluna), (linha, coluna+1), (linha, coluna+2)])
+								narmadurabot -=1
 						else:
 							print("O espaço selecionado já está ocupado")
-					elemento_preenchido *= 100000
 				else:
 					print("Entrada de sentido inválida")
 
@@ -144,8 +163,14 @@ def preencher(linha, coluna, elemento, sentido, numcasas, matriz, listapreenchid
 							matriz[linha][coluna-1] = elemento
 							matriz[linha+1][coluna-1] = elemento
 							matriz[linha+2][coluna-1] = elemento
-							elemento_preenchido += (linha+1)/100 + (coluna)/1000 + (linha+2)/10000 + (coluna)/100000 + (linha+3)/1000000 + (coluna)/10000000
-							nasas -= 1
+							
+							if jogador == "player":
+								posicionados["asasply"].append([(linha, coluna), (linha+1, coluna), (linha+2,coluna), (linha+3, coluna)])
+								nasas -= 1
+							elif jogador == "bot":
+								posicionados["asasbot"].append([(linha, coluna), (linha+1, coluna), (linha+2,coluna), (linha+3, coluna)])
+								nasasbot -= 1						
+							
 						else:
 							print("O espaço selecionado já está ocupado")
 					elif sentido ==2:
@@ -156,32 +181,98 @@ def preencher(linha, coluna, elemento, sentido, numcasas, matriz, listapreenchid
 							matriz[linha-1][coluna] = elemento
 							matriz[linha-1][coluna+1] = elemento
 							matriz[linha-1][coluna+2] = elemento
-							elemento_preenchido += (linha/100) + (coluna+1)/1000 + (linha/10000)+(coluna+2)/100000 + (linha/1000000)+(coluna+3)/10000000
-							nasas -= 1
+							
+							if jogador == "player":
+								posicionados["asasply"].append([(linha, coluna), (linha, coluna+1), (linha, coluna+2), (linha, coluna+3)])
+								nasas -= 1
+							elif jogador == "bot":
+								posicionados["asasbot"].append([(linha, coluna), (linha, coluna+1), (linha, coluna+2), (linha, coluna+3)])
+								nasasbot -= 1
+								
 						else:
 							print("O espaço selecionado já está ocupado")
-					elemento_preenchido *= 10000000
 				else:
 					print("Entrada de sentido inválida")
 
 		if japreenchido == False:
 			if elemento in ("@", "#", "$", "%"):
-				listapreenchidos.append(elemento_preenchido)
-				print(listapreenchidos)
+				pass
+				#print(posicionados)
 			else:
 				print("Elemento Inválido")
 
-def cantada(linha, coluna, matriz, espelho):
-	global preenchidos, preenchidosbot
+def cantada(linha, coluna, matriz, espelho, jogador):
+	global preenchidos, preenchidosbot, posicionados
+	coordenada = (linha, coluna)
+	pecacompleta = False
 	if matriz[linha-1][coluna-1] in ("@", "#", "$", "%"):
 		espelho[linha-1][coluna-1] = "x"
 		elemento_acerto = matriz[linha-1][coluna-1]
+
+		if jogador == "PLAYER":
+			sufixo = "bot"
+		elif jogador == "BOT":
+			sufixo = "ply"
+		match elemento_acerto:
+			case "@":
+				for coords_elmo in posicionados["elmos"+sufixo]:
+					if coordenada == coords_elmo:
+						posicionados["elmos"+sufixo].remove(coords_elmo)
+						print(f"PEÇA COMPLETADA POR {jogador}: ELMO")
+						pecacompleta = True
+			case "#":
+				#COOMPARA A COORDENADA DA CANTADA/ATAQUE COM CADA COORDENADA DE CADA ELEMENTO
+				#PARA RETIRA-LO DOS ELEMENTOS AINDA NÃO DESCOBERTOS
+
+				for capa in posicionados["capas"+sufixo]:
+					for coords_capa in capa:
+						if coordenada == coords_capa:
+							posicionados["capas"+sufixo][posicionados["capas"+sufixo].index(capa)][posicionados["capas"+sufixo][posicionados["capas"+sufixo].index(capa)].index(coords_capa)] = 0
+					pecacompleta = True
+
+					for verif_capa in capa:
+						if verif_capa != 0:
+							pecacompleta = False
+					if pecacompleta == True:
+						print(f"PEÇA COMPLETA POR {jogador}: CAPA")
+						posicionados["capas"+sufixo].remove(capa)
+			case "$":
+				
+				for armadura in posicionados["armaduras"+sufixo]:
+					for coords_armadura in armadura:
+						if coordenada == coords_armadura:
+							posicionados["armaduras"+sufixo][posicionados["armaduras"+sufixo].index(armadura)][posicionados["armaduras"+sufixo][posicionados["armaduras"+sufixo].index(armadura)].index(coords_armadura)] = 0
+					pecacompleta = True
+
+					for verif_armadura in armadura:
+						if verif_armadura != 0:
+							pecacompleta = False
+					if pecacompleta == True:
+						print(f"PEÇA COMPLETA POR {jogador}: ARMADURA")
+						posicionados["armaduras"+sufixo].remove(armadura)
+			case "%":
+				
+				for asa in posicionados["asas"+sufixo]:
+					for coords_asa in asa:
+						if coordenada == coords_asa:
+							posicionados["asas"+sufixo][posicionados["asas"+sufixo].index(asa)][posicionados["asas"+sufixo][posicionados["asas"+sufixo].index(asa)].index(coords_asa)] = 0
+					pecacompleta = True
+
+					for verif_asa in asa:
+						if verif_asa != 0:
+							pecacompleta = False
+					if pecacompleta == True:
+						print(f"PEÇA COMPLETA POR {jogador}: ASA")
+						posicionados["asas"+sufixo].remove(asa)
+
+						
+
 		acerto = True
 	else:
 		espelho[linha-1][coluna-1] = "o"
 		acerto = False
 
-	return acerto
+	return (acerto)
 
 
 menu = True
@@ -228,7 +319,21 @@ while menu:
 
 			preenchidos = []
 			preenchidosbot = []
+			
+			#>>> dic['a'].append('a')
 
+			posicionados = {
+			"elmosply":[],
+			"capasply":[], 
+			"armadurasply":[],
+			"asasply":[],
+
+			"elmosbot":[], 
+			"capasbot":[], 
+			"armadurasbot":[], 
+			"asasbot":[]
+			}
+					
 					
 			limpar()
 
@@ -290,7 +395,7 @@ while menu:
 						sentido=int(input("Defina o sentido(Vertical [1] Horizontal[2]):"))
 						
 
-					preencher(linha,coluna,elemento,sentido, numcasas, bancadaplayer, preenchidos)
+					preencher(linha,coluna,elemento,sentido, numcasas, bancadaplayer, preenchidos, "player")
 				else:
 					print("Sem exemplares disponíveis para posicionar essa peça.")
 
@@ -382,7 +487,7 @@ while menu:
 				#RODADA DO PLAYER
 				while True:
 					try:
-						linha_canto= int(input("Número da linha que deseja canta: "))
+						linha_canto= int(input("Número da linha que deseja cantar: "))
 						if linha_canto < 0 and linha_canto > grade:
 							print("Linha fora da bancada. Tente de novo.")
 						else:
@@ -390,9 +495,11 @@ while menu:
 					except:
 						print("Entrada Inválida.")
 
+				inicio = True
+				jaextendeu = False
 				while True:
 					try:
-						coluna_canto= int(input("Número da coluna que deseja canta: "))
+						coluna_canto= int(input("Número da coluna que deseja cantar: "))
 						if coluna_canto < 0 and coluna_canto > grade:
 							print("Coluna fora da bancada. Tente de novo.")
 						else:
@@ -400,24 +507,95 @@ while menu:
 					except:
 						print("Entrada Inválida.")
 
-				acerto_ply = cantada(linha_canto, coluna_canto, bancadabot, bancbot_espelho)
+				acerto_ply = cantada(linha_canto, coluna_canto, bancadabot, bancbot_espelho, "PLAYER")
 
 				#RODADA DO BOT
-				cantada_valida = False
-				while cantada_valida == False:
-					linbot_canto = random.randint(1, grade)
-					colbot_canto = random.randint(1, grade)
-					if ((linbot_canto*10)+colbot_canto) not in jogadas_bot:
-						cantada_valida = True
+				if modobot == "normal":
+					cantada_valida = False
+					while cantada_valida == False:
+						linbot_canto = random.randint(1, grade)
+						colbot_canto = random.randint(1, grade)
+						if ((linbot_canto*10)+colbot_canto) not in jogadas_bot:
+							cantada_valida = True
 
-				acerto_bot = cantada(linbot_canto, colbot_canto, bancadaplayer, bancply_espelho)
+					acerto_bot = cantada(linbot_canto, colbot_canto, bancadaplayer, bancply_espelho, "BOT")
+				elif modobot == "veterano":
+					if inicio:
+						linbot_canto = random.randint(1, grade)
+						colbot_canto = random.randint(1, grade)
+						acerto_bot = cantada(linbot_canto, colbot_canto, bancadaplayer, bancply_espelho, "BOT")
+						if acerto_bot:
+							inicio = False
+							linha_partida = linbot_canto
+							coluna_partida = colbot_canto
+							extensao = False
+					else:
+						if extensao == False:
+							direcao = random.randint(1, 2)
+							if jaextendeu == False:
+								sentido = random.randint(1, 2)
+
+								if direcao == 1: #VERTICAL
+									if sentido == 1:#CIMA
+										linbot_canto -=1
+									elif sentido == 2:#BAIXO
+										linbot_canto += 1
+
+								elif direcao == 2: #HORIZONTAL
+									if sentido == 1:#ESQUERDA
+										colbot_canto -=1
+									elif sentido == 2:#DIREITA
+										colbot_canto += 1
+								
+								acerto_bot = cantada(linbot_canto, colbot_canto, bancadaplayer, bancply_espelho, "BOT")
+								if acerto_bot == False: #ERROU
+									jaextendeu = True
+								else:
+									extensao = True
+							if jaextendeu:
+								#MUDA O SENTIDO
+								if sentido == 1:
+									sentido = 2
+								elif sentido == 2:
+									sentido = 1
+								
+								if direcao == 1: #VERTICAL
+									if sentido == 1:#CIMA
+										linbot_canto -=1
+									elif sentido == 2:#BAIXO
+										linbot_canto += 1
+
+								elif direcao == 2: #HORIZONTAL
+									if sentido == 1:#ESQUERDA
+										colbot_canto -=1
+									elif sentido == 2:#DIREITA
+										colbot_canto += 1
+								
+								acerto_bot = cantada(linbot_canto, colbot_canto, bancadaplayer, bancply_espelho, "BOT")
+								if acerto_bot == False:
+									#MUDA O DIREÇÃO
+									if direcao == 1:
+										direcao = 2
+									elif direcao == 2:
+										direcao = 1
+								else:
+									extensao = True
+						elif extensao == True:
+							if sentido == 1:#ESQUERDA
+								colbot_canto -=1
+							elif sentido == 2:#DIREITA
+								colbot_canto += 1
+							acerto_bot = cantada(linbot_canto, colbot_canto, bancadaplayer, bancply_espelho, "BOT")
+							if acerto_bot == False:
+								extensao = False
 
 				#EXIBIÇÃO DAS BANCADAS
-
+				print("SUA BANCADA: ")
 				exibirbancada(bancbot_espelho)
 
 				print("--" * 20)
 
+				print("BANCANDA DO BOT: ")
 				exibirbancada(bancply_espelho)
 
 		case 2:
