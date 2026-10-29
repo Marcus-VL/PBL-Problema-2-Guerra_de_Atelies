@@ -15,7 +15,10 @@ bancadabot = []
 def exibirbancada(bancada):
 	print("  ", end="")
 	for i in range(1, grade+1):
-		print("  ", i, end="")
+		if i < 11:
+			print("  ", i, end="")
+		else:
+			print(" ", i, end="")
 	print()
 
 	for i in range(grade):
@@ -49,9 +52,8 @@ def verifpreenchimento(numcasas, sentido, matriz):
 
 	return japreenchido
 
-def preencher(linha, coluna, elemento, sentido, numcasas, matriz, listapreenchidos, jogador):
+def preencher(linha, coluna, elemento, sentido, numcasas, matriz, jogador):
 	global nelmos, nelmosbot, narmadura, narmadurabot, ncapas, ncapasbot, nasas, nasasbot, limite
-	japreenchido = False
 
 	limite = False
 	if (((sentido == 1 and linha+numcasas-1 > grade) or (sentido == 2 and coluna+numcasas-1 > grade)) or (linha == 0 or coluna == 0)):
@@ -78,7 +80,6 @@ def preencher(linha, coluna, elemento, sentido, numcasas, matriz, listapreenchid
 			#CAPA
 			case "#":
 				if sentido in (1, 2):
-					elemento_preenchido = linha + coluna/10
 					if sentido == 1:
 
 						japreenchido = verifpreenchimento(numcasas, sentido, matriz)
@@ -97,7 +98,6 @@ def preencher(linha, coluna, elemento, sentido, numcasas, matriz, listapreenchid
 					elif sentido == 2:
 
 						japreenchido = verifpreenchimento(numcasas, sentido, matriz)
-
 						if japreenchido == False:
 							matriz[linha-1][coluna-1] = elemento
 							matriz[linha-1][coluna] = elemento
@@ -194,26 +194,27 @@ def preencher(linha, coluna, elemento, sentido, numcasas, matriz, listapreenchid
 				else:
 					print("Entrada de sentido inválida")
 
-		if japreenchido == False:
-			if elemento in ("@", "#", "$", "%"):
-				pass
-				#print(posicionados)
-			else:
-				print("Elemento Inválido")
+		if japreenchido == True:
+			print("POSIÇÃO INVÁLIDA. JÁ PREENCHIDA")
 
 def cantada(linha, coluna, matriz, espelho, jogador):
-	global preenchidos, preenchidosbot, posicionados
+	global posicionados, pontos_player, pontos_bot
 	coordenada = (linha, coluna)
 	pecacompleta = False
 	if matriz[linha-1][coluna-1] in ("@", "#", "$", "%"):
 		espelho[linha-1][coluna-1] = "x"
 		elemento_acerto = matriz[linha-1][coluna-1]
+		print(jogador, "ACERTOU UMA CASA COM PEÇA! + 10 PONTOS")
 
 		if jogador == "PLAYER":
+			pontos_player += 10
 			sufixo = "bot"
 		elif jogador == "BOT":
+			pontos_bot += 10
 			sufixo = "ply"
 		match elemento_acerto:
+				#COOMPARA A COORDENADA DA CANTADA/ATAQUE COM CADA COORDENADA DE CADA ELEMENTO
+				#PARA RETIRA-LO DOS ELEMENTOS AINDA NÃO DESCOBERTOS
 			case "@":
 				for coords_elmo in posicionados["elmos"+sufixo]:
 					if coordenada == coords_elmo:
@@ -221,8 +222,6 @@ def cantada(linha, coluna, matriz, espelho, jogador):
 						print(f"PEÇA COMPLETADA POR {jogador}: ELMO")
 						pecacompleta = True
 			case "#":
-				#COOMPARA A COORDENADA DA CANTADA/ATAQUE COM CADA COORDENADA DE CADA ELEMENTO
-				#PARA RETIRA-LO DOS ELEMENTOS AINDA NÃO DESCOBERTOS
 
 				for capa in posicionados["capas"+sufixo]:
 					for coords_capa in capa:
@@ -266,21 +265,46 @@ def cantada(linha, coluna, matriz, espelho, jogador):
 						posicionados["asas"+sufixo].remove(asa)
 
 						
-
+		if pecacompleta == True:
+			if jogador == "PLAYER":
+				pontos_player += 50
+			elif jogador == "BOT":
+				pontos_bot += 50
+			print("+50 PONTOS")
 		acerto = True
 	else:
 		espelho[linha-1][coluna-1] = "o"
+		print(jogador, " ERROU E A CASA CANTADA NÃO POSSUI PEÇA. -5 PONTOS")
+		if jogador == "PLAYER":
+			pontos_player -=5
+		elif jogador == "BOT":
+			pontos_bot -= 5
 		acerto = False
 
-	return (acerto)
+	return (acerto, pecacompleta)
 
+def olho_clinico(linha, coluna, matriz):
+	contador = 0
+	for i in range(3):
+		for j in range(3):
+			linha_verif = linha+i-1
+			coluna_verif = coluna+j-1
+			if (linha_verif< 1 or linha_verif > grade) or (coluna_verif<1 or coluna_verif> grade):
+				pass
+			else:
+				if matriz[linha_verif-1][coluna_verif-1] in ("@", "#", "$", "%"):
+					contador += 1
+	print(posicionados)
+	print(f"Tem {contador} partes de peças em volta desse ponto.\n-30 PONTOS DEVIDO A USO DE OLHO CLÍNICO")
 
 menu = True
 
 while menu:
 	print("|MENU - GUERRA ATELIÊ|\
 	     \n1 - Jogar nova partida\
-	     \n2 - Sair")
+	     \n2 - Regras\
+		 \n3 - Pontuação do dia\
+	     \n4- Sair")
 
 	while True:
 		try:
@@ -310,15 +334,13 @@ while menu:
 			narmadura = narmadurabot = int(grade/5) # 1 ARMADURA A CADA 5 UNIDADES
 			ncapas = ncapasbot = int(grade/3) # 1 CAPA A CADA 3 UNIDADES
 			nasas = nasasbot = int(grade/8) # 1 PAR DE ASAS A CADA 8 UNIDADES
-
+			usos_olho = int(grade/2) # 1 OLHOS CLÍNICO A CADA 2 UNIDADES
+			
 			pecasbot = (nelmos+ncapas+narmadura+nasas)
 
 			for i in range(grade):
 				bancadaplayer.append(["n"]*grade)
 				bancadabot.append(["n"]*grade)
-
-			preenchidos = []
-			preenchidosbot = []
 			
 			#>>> dic['a'].append('a')
 
@@ -395,7 +417,7 @@ while menu:
 						sentido=int(input("Defina o sentido(Vertical [1] Horizontal[2]):"))
 						
 
-					preencher(linha,coluna,elemento,sentido, numcasas, bancadaplayer, preenchidos, "player")
+					preencher(linha,coluna,elemento,sentido, numcasas, bancadaplayer, "player")
 				else:
 					print("Sem exemplares disponíveis para posicionar essa peça.")
 
@@ -423,7 +445,7 @@ while menu:
 						coluna = random.randint(1, grade)
 						if verifpreenchimento(numcasas, sentido, bancadabot) == False:
 							posicaovalida = True
-					preencher(linha, coluna, "@", sentido, numcasas, bancadabot, preenchidosbot, "bot")
+					preencher(linha, coluna, "@", sentido, numcasas, bancadabot, "bot")
 					if limite == True:
 								nelmosbot += 1
 					nelmosbot -= 1
@@ -436,7 +458,7 @@ while menu:
 						sentido = random.randint(1, 2)
 						if verifpreenchimento(numcasas, sentido, bancadabot) == False:
 							posicaovalida = True
-					preencher(linha, coluna, "#", sentido, numcasas, bancadabot, preenchidosbot, "bot")
+					preencher(linha, coluna, "#", sentido, numcasas, bancadabot, "bot")
 					if limite == True:
 								ncapasbot += 1
 					ncapasbot -= 1
@@ -450,7 +472,7 @@ while menu:
 						if verifpreenchimento(numcasas, sentido, bancadabot) == False:
 							posicaovalida = True
 
-					preencher(linha, coluna, "$", sentido, numcasas, bancadabot, preenchidosbot, "bot")
+					preencher(linha, coluna, "$", sentido, numcasas, bancadabot, "bot")
 					if limite == True:
 								narmadurabot += 1
 					narmadurabot -= 1
@@ -464,7 +486,7 @@ while menu:
 						sentido = random.randint(1, 2)
 						if verifpreenchimento(numcasas, sentido, bancadabot) == False:
 							posicaovalida = True
-					preencher(linha, coluna, "%", sentido, numcasas, bancadabot, preenchidosbot, "bot")
+					preencher(linha, coluna, "%", sentido, numcasas, bancadabot, "bot")
 					if limite == True:
 						nasasbot += 1
 					nasasbot -= 1
@@ -475,6 +497,7 @@ while menu:
 			#Fase de Ataques
 			print("|FASE DE CANTADAS DE POSIÇÕES|")
 
+			pontos_player = pontos_bot = 0
 			bancbot_espelho = []
 			bancply_espelho = []
 			jogadas_bot = []
@@ -483,8 +506,39 @@ while menu:
 				bancply_espelho.append(["n"]*grade)
 
 			ataquesbancadas = True
+			inicio = True
 			while ataquesbancadas:
 				#RODADA DO PLAYER
+				if usos_olho > 0:
+					while True:
+						ajuda = input(f"Você tem {usos_olho} usos do olho clínico. Deseja usar um olho clinico?[S/N]:")
+						if ajuda.lower() == "s":
+							while True:#INPUT LINHA
+								try:
+									linha_olho= int(input("Número da linha que deseja usar o olho clínico: "))
+									if linha_olho < 0 and linha_olho > grade:
+										print("Linha fora da bancada. Tente de novo.")
+									else:
+										break
+								except:
+									print("Entrada Inválida.")
+							while True:#INPUT COLUNA
+								try:
+									coluna_olho= int(input("Número da coluna que deseja usar o olho clínico: "))
+									if coluna_olho < 0 and coluna_olho > grade:
+										print("Coluna fora da bancada. Tente de novo.")
+									else:
+										break
+								except:
+									print("Entrada Inválida.")
+							olho_clinico(linha_olho, coluna_olho, bancadabot)
+							pontos_player -=30
+							usos_olho -=1
+							break
+						elif ajuda.lower() == "n":
+							break
+						else:
+							print("Entrada incorreta. Tente novamente")
 				while True:
 					try:
 						linha_canto= int(input("Número da linha que deseja cantar: "))
@@ -495,7 +549,6 @@ while menu:
 					except:
 						print("Entrada Inválida.")
 
-				inicio = True
 				jaextendeu = False
 				while True:
 					try:
@@ -508,7 +561,7 @@ while menu:
 						print("Entrada Inválida.")
 
 				acerto_ply = cantada(linha_canto, coluna_canto, bancadabot, bancbot_espelho, "PLAYER")
-
+			
 				#RODADA DO BOT
 				if modobot == "normal":
 					cantada_valida = False
@@ -519,75 +572,71 @@ while menu:
 							cantada_valida = True
 
 					acerto_bot = cantada(linbot_canto, colbot_canto, bancadaplayer, bancply_espelho, "BOT")
+
 				elif modobot == "veterano":
+
 					if inicio:
 						linbot_canto = random.randint(1, grade)
 						colbot_canto = random.randint(1, grade)
-						acerto_bot = cantada(linbot_canto, colbot_canto, bancadaplayer, bancply_espelho, "BOT")
+
+						acerto_bot, completa = cantada(linbot_canto, colbot_canto, bancadaplayer, bancply_espelho, "BOT")
+						
 						if acerto_bot:
-							inicio = False
-							linha_partida = linbot_canto
-							coluna_partida = colbot_canto
-							extensao = False
+							if completa:
+								inicio = True
+							else:
+								inicio = False
+								linha_partida = linbot_canto
+								coluna_partida = colbot_canto
+								extensao = False
+								direcao = random.randint(1, 2)
+								sentido = random.randint(1, 2)
+								tentativas_direcao = 0
 					else:
 						if extensao == False:
-							direcao = random.randint(1, 2)
-							if jaextendeu == False:
-								sentido = random.randint(1, 2)
+							linbot_canto = linha_partida
+							colbot_canto = coluna_partida
 
-								if direcao == 1: #VERTICAL
-									if sentido == 1:#CIMA
-										linbot_canto -=1
-									elif sentido == 2:#BAIXO
-										linbot_canto += 1
+						if direcao == 1: #VERTICAL
+							if sentido == 1:#CIMA
+								linbot_canto -=1
+							elif sentido == 2:#BAIXO
+								linbot_canto += 1
 
-								elif direcao == 2: #HORIZONTAL
-									if sentido == 1:#ESQUERDA
-										colbot_canto -=1
-									elif sentido == 2:#DIREITA
-										colbot_canto += 1
-								
-								acerto_bot = cantada(linbot_canto, colbot_canto, bancadaplayer, bancply_espelho, "BOT")
-								if acerto_bot == False: #ERROU
-									jaextendeu = True
-								else:
-									extensao = True
-							if jaextendeu:
-								#MUDA O SENTIDO
-								if sentido == 1:
-									sentido = 2
-								elif sentido == 2:
-									sentido = 1
-								
-								if direcao == 1: #VERTICAL
-									if sentido == 1:#CIMA
-										linbot_canto -=1
-									elif sentido == 2:#BAIXO
-										linbot_canto += 1
-
-								elif direcao == 2: #HORIZONTAL
-									if sentido == 1:#ESQUERDA
-										colbot_canto -=1
-									elif sentido == 2:#DIREITA
-										colbot_canto += 1
-								
-								acerto_bot = cantada(linbot_canto, colbot_canto, bancadaplayer, bancply_espelho, "BOT")
-								if acerto_bot == False:
-									#MUDA O DIREÇÃO
-									if direcao == 1:
-										direcao = 2
-									elif direcao == 2:
-										direcao = 1
-								else:
-									extensao = True
-						elif extensao == True:
+						elif direcao == 2: #HORIZONTAL
 							if sentido == 1:#ESQUERDA
 								colbot_canto -=1
 							elif sentido == 2:#DIREITA
 								colbot_canto += 1
-							acerto_bot = cantada(linbot_canto, colbot_canto, bancadaplayer, bancply_espelho, "BOT")
-							if acerto_bot == False:
-								extensao = False
+								
+						acerto_bot, completa = cantada(linbot_canto, colbot_canto, bancadaplayer, bancply_espelho, "BOT")
+                        
+						if completa:
+                            #VOLTA PARA AS CANTADAS ALEATORIAS
+							inicio = True
+							extensao = False
+						else:
+							if acerto_bot:
+								extensao = True
+							else:
+								if extensao == True:
+                                    # ACHOU O FIM DO LADO DE UMA PEÇA. INVERTE E SE EXTENDE PARA O OUTRO LADO
+									extensao = False
+									sentido = 2 if sentido == 1 else 1
+								else:
+									tentativas_direcao += 1
+                                    
+									if tentativas_direcao < 2:
+										sentido = 2 if sentido == 1 else 1
+									else:
+										direcao = 2 if direcao == 1 else 1
+										sentido = random.randint(1, 2)
+										tentativas_direcao = 0
+
+				if pontos_player < 0:
+					pontos_player = 0
+				if pontos_bot < 0:
+					pontos_bot = 0
 
 				#EXIBIÇÃO DAS BANCADAS
 				print("SUA BANCADA: ")
@@ -597,6 +646,8 @@ while menu:
 
 				print("BANCANDA DO BOT: ")
 				exibirbancada(bancply_espelho)
+
+				
 
 		case 2:
 			menu = False
