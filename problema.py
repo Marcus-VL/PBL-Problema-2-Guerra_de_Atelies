@@ -234,6 +234,7 @@ def cantada(linha, coluna, matriz, espelho, jogador):
 				for capa in posicionados["capas"+sufixo]:
 					for coords_capa in capa:
 						if coordenada == coords_capa:
+							#SUBSTITUI O ESPAÇO DA PEÇA QUE FOI ENCONTRADA POR 0 PARA NÃO SER IDENTIFICADO NO PROX LOOPING
 							posicionados["capas"+sufixo][posicionados["capas"+sufixo].index(capa)][posicionados["capas"+sufixo][posicionados["capas"+sufixo].index(capa)].index(coords_capa)] = 0
 					pecacompleta = True
 
@@ -248,6 +249,7 @@ def cantada(linha, coluna, matriz, espelho, jogador):
 				for armadura in posicionados["armaduras"+sufixo]:
 					for coords_armadura in armadura:
 						if coordenada == coords_armadura:
+							#SUBSTITUI O ESPAÇO DA PEÇA QUE FOI ENCONTRADA POR 0 PARA NÃO SER IDENTIFICADO NO PROX LOOPING
 							posicionados["armaduras"+sufixo][posicionados["armaduras"+sufixo].index(armadura)][posicionados["armaduras"+sufixo][posicionados["armaduras"+sufixo].index(armadura)].index(coords_armadura)] = 0
 					pecacompleta = True
 
@@ -262,6 +264,7 @@ def cantada(linha, coluna, matriz, espelho, jogador):
 				for asa in posicionados["asas"+sufixo]:
 					for coords_asa in asa:
 						if coordenada == coords_asa:
+							#SUBSTITUI O ESPAÇO DA PEÇA QUE FOI ENCONTRADA POR 0 PARA NÃO SER IDENTIFICADO NO PROX LOOPING
 							posicionados["asas"+sufixo][posicionados["asas"+sufixo].index(asa)][posicionados["asas"+sufixo][posicionados["asas"+sufixo].index(asa)].index(coords_asa)] = 0
 					pecacompleta = True
 
@@ -701,29 +704,30 @@ while menu:
 								acerto_ply = cantada(linha_canto, coluna_canto, bancadabot, bancbot_espelho, "PLAYER")
 						case 2:
 							if usos_olho > 0:
-								while True:
-									while True:#INPUT LINHA
-										try:
-											linha_olho= int(input("Número da linha que deseja usar o olho clínico: "))
-											if linha_olho <= 0 or linha_olho > grade:
-												print("Linha fora da bancada. Tente de novo.")
-											else:
-												break
-										except (ValueError):
-											print("Entrada Inválida.")
-									while True:#INPUT COLUNA
-										try:
-											coluna_olho= int(input("Número da coluna que deseja usar o olho clínico: "))
-											if coluna_olho <= 0 or coluna_olho > grade:
-												print("Coluna fora da bancada. Tente de novo.")
-											else:
-												break
-										except (ValueError):
-											print("Entrada Inválida.")
-									olho_clinico(linha_olho, coluna_olho, bancadabot)
-									pontos_player -=30
-									usos_olho -=1
-									break
+
+								while True:#INPUT LINHA
+									try:
+										linha_olho= int(input("Número da linha que deseja usar o olho clínico: "))
+										if linha_olho <= 0 or linha_olho > grade:
+											print("Linha fora da bancada. Tente de novo.")
+										else:
+											break
+									except (ValueError):
+										print("Entrada Inválida.")
+
+								while True:#INPUT COLUNA
+									try:
+										coluna_olho= int(input("Número da coluna que deseja usar o olho clínico: "))
+										if coluna_olho <= 0 or coluna_olho > grade:
+											print("Coluna fora da bancada. Tente de novo.")
+										else:
+											break
+									except (ValueError):
+										print("Entrada Inválida.")
+								olho_clinico(linha_olho, coluna_olho, bancadabot)
+								pontos_player -=30
+								usos_olho -=1
+									
 							else:
 								print("Sem usos de olho clínico disponíveis. Tente novamente outra opção.")
 								op_valida = False
