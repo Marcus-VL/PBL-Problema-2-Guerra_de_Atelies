@@ -11,6 +11,15 @@ import os, random
 def limpar():
 	os.system('cls')
 
+def regras():
+	print("|REGRAS DO JOGO|\
+			\n- O objetivo é descobrir todas as peças escondidas na bancada do adversário\n antes que ele descubra as suas.\
+		\n\n- A bancada é quadrada. O tamanho determina quantas peças cada jogador terá;\n no modo automático, elas são posicionadas aleatoriamente.\
+		\n\n- As peças ocupam casas consecutivas: @ ocupa 1 casa, # ocupa 2, $ ocupa 3 e % ocupa 4.\n Peças não podem se sobrepor nem ultrapassar os limites da bancada.\
+		\n\n- Em cada rodada, o jogador escolhe uma posição para tentar acertar.\n Depois, o bot também faz uma tentativa.\
+		\n\n- Cada acerto vale 10 pontos. Ao descobrir uma peça inteira, ganha-se mais 50 pontos.\n Cada erro desconta 5 pontos.\
+		\n\n- O Olho Clínico revela quantas partes de peças existem ao redor da posição escolhida.\n Cada uso custa 30 pontos e a quantidade de usos depende do tamanho da bancada.\
+		\n\n- A partida termina quando todas as peças de um dos lados forem descobertas.\n Quem ainda tiver peças escondidas vence. O jogador também pode desistir.\n")
 
 def exibirbancada(bancada):
 	print("  ", end="")
@@ -34,7 +43,6 @@ def exibirbancada(bancada):
 			else:
 				print(f" {x[j]} ", end=" ")
 		print("|")
-
 
 def verifpreenchimento(numcasas, sentido, matriz):
 	japreenchido = False
@@ -330,12 +338,16 @@ while menu:
 		try:
 			opcao = int(input("Escolha uma opção: "))
 			break
-		except:
+		except (ValueError):
 			print("Entrada inválida.")
 
 	match opcao:
 		case 1:
 			num_partidas += 1
+			if num_partidas == 1:
+				print("|PRIMEIRA PARTIDA DO DIA|\n Bem-vindo, jogador! Por ser a primeira partida de hoje, vamos te introduzir automaticamente às regras:\n")
+				regras()
+				print("Agora finalmente, vamos a partida. \n\n")
 			while True:
 				modobot = input("Selecione o modo do BOT [Novato - Veterano]: ")
 				modobot = modobot.lower()
@@ -354,10 +366,15 @@ while menu:
 				else:
 					print("Entrada incorreta.")
 
-			try:
-				grade = int(input("Tamanho da grade[n]\n(Ex.: n = 3, logo Grade 3x3 - Tamanho Máximo: 9x9)\nInsira tamanho da grade: "))
-			except:
-				print("Entrada Inválida.")
+			while True:
+				try:
+					grade = int(input("Tamanho da grade[n] - (Ex.: n = 3, logo Grade 3x3)\n[Mínimo: 4x4 - Máximo: 20x20]\nInsira tamanho da grade: "))
+					if grade >= 4 and grade <= 20:
+						break
+					else:
+						print(f"Tamanho inválido - {grade}x{grade}")
+				except (ValueError):
+					print("Entrada Inválida.")
 
 			nelmos = nelmosrest = nelmosbot = 2*(int((grade - 1) / 4)) # 2 ELMOS A CADA 4 UNIDADES APÓS 1
 			narmadura = narmadurarest = narmadurabot = int(grade/5) # 1 ARMADURA A CADA 5 UNIDADES
@@ -415,15 +432,21 @@ while menu:
 					while True:
 						try:
 							linha= int(input("Número da linha que deseja preencher: "))
-							break
-						except:
+							if linha <= 0 or linha > grade:
+								print("Linha fora dos limites da bancada.")
+							else:
+								break
+						except (ValueError):
 							print("Entrada Inválida.")
 
 					while True:
 						try:
 							coluna= int(input("Número da coluna que deseja preencher: "))
-							break
-						except:
+							if coluna <= 0 or coluna > grade:
+								print("Coluna fora dos limites da bancada.")
+							else:
+								break
+						except (ValueError):
 							print("Entrada Inválida.")
 					
 					valido = False
@@ -431,7 +454,7 @@ while menu:
 						elemento=input("Digite o simbolo do elemento: ")
 
 						qtelemento_validez = True #BOOLEANO QUE CONFERE SE AINDA TEM UMA QUANTIDADE DE ELEMENTOS MAIOR QUE ZERO
-						if elemento not in("@", "#", "$", "%", "encerrar"):
+						if elemento not in("@", "#", "$", "%"):
 							print("Entrada Inválida.")
 						else:
 							match elemento:
@@ -453,13 +476,17 @@ while menu:
 									numcasas = 4
 							valido = True
 
-					if elemento == "encerrar":
-						print("Programa Encerrado")
-						break
-
 					if qtelemento_validez == True:
-						if elemento not in ("@", "encerrar"):
-							sentido=int(input("Defina o sentido(Vertical [1] Horizontal[2]):"))
+						if elemento not in ("@"):
+							while True:
+								try:
+									sentido=int(input("Defina o sentido(Vertical [1] Horizontal[2]):"))
+									if sentido in (1, 2):
+										break
+									else:
+										print("Sentido Inválida.")
+								except (ValueError):
+									print("Entrada Inválida.")
 							
 
 						japreenchido, ultrapassou = preencher(linha,coluna,elemento,sentido, numcasas, bancadaplayer, "player")
@@ -468,7 +495,7 @@ while menu:
 
 					limpar()
 					
-					pecas = (nelmos+ncapas+narmadura+nasas)
+					pecas = (nelmosrest+ncapasrest+narmadurarest+nasasrest)
 					if pecas == 0:
 						print("MONTAGEM DA BANCADA FINALIZADA.\n")
 						montagembancada = False
@@ -640,30 +667,31 @@ while menu:
 						try:
 							opcao_cantadas = int(input("Insira uma opção:"))
 							break
-						except:
+						except ValueError:
 							print("Entrada incorreta. Tente novamente.")
+
 
 					match opcao_cantadas:
 						case 1:
 							while True:
 								try:
 									linha_canto= int(input("Número da linha que deseja cantar: "))
-									if linha_canto < 0 and linha_canto > grade:
+									if linha_canto <= 0 or linha_canto > grade:
 										print("Linha fora da bancada. Tente de novo.")
 									else:
 										break
-								except:
+								except (ValueError):
 									print("Entrada Inválida.")
 			
 							jaextendeu = False
 							while True:
 								try:
 									coluna_canto= int(input("Número da coluna que deseja cantar: "))
-									if coluna_canto < 0 and coluna_canto > grade:
+									if coluna_canto <= 0 or coluna_canto > grade:
 										print("Coluna fora da bancada. Tente de novo.")
 									else:
 										break
-								except:
+								except (ValueError):
 									print("Entrada Inválida.")
 							if bancbot_espelho[linha_canto-1][coluna_canto-1] in ("X", "O"):
 								print("Já joguei nessa casa. Escolha outra")
@@ -677,20 +705,20 @@ while menu:
 									while True:#INPUT LINHA
 										try:
 											linha_olho= int(input("Número da linha que deseja usar o olho clínico: "))
-											if linha_olho < 0 or linha_olho > grade:
+											if linha_olho <= 0 or linha_olho > grade:
 												print("Linha fora da bancada. Tente de novo.")
 											else:
 												break
-										except:
+										except (ValueError):
 											print("Entrada Inválida.")
 									while True:#INPUT COLUNA
 										try:
 											coluna_olho= int(input("Número da coluna que deseja usar o olho clínico: "))
-											if coluna_olho < 0 or coluna_olho > grade:
+											if coluna_olho <= 0 or coluna_olho > grade:
 												print("Coluna fora da bancada. Tente de novo.")
 											else:
 												break
-										except:
+										except (ValueError):
 											print("Entrada Inválida.")
 									olho_clinico(linha_olho, coluna_olho, bancadabot)
 									pontos_player -=30
@@ -707,75 +735,105 @@ while menu:
 							op_valida = False
 			
 				#RODADA DO BOT
-				if modobot == "novato":
-					cantada_valida = False
-					while cantada_valida == False:
-						linbot_canto = random.randint(1, grade)
-						colbot_canto = random.randint(1, grade)
-						if ((linbot_canto*10)+colbot_canto) not in jogadas_bot:
-							cantada_valida = True
+				
+				if vencedor == None:
+					if modobot == "novato":
+						cantada_valida = False
+						while cantada_valida == False:
+							linbot_canto = random.randint(1, grade)
+							colbot_canto = random.randint(1, grade)
+							if (linbot_canto, colbot_canto) not in jogadas_bot:
+								cantada_valida = True
+								jogadas_bot.append((linbot_canto, colbot_canto))
 
-					acerto_bot = cantada(linbot_canto, colbot_canto, bancadaplayer, bancply_espelho, "BOT")
+						acerto_bot = cantada(linbot_canto, colbot_canto, bancadaplayer, bancply_espelho, "BOT")
 
-				elif modobot == "veterano":
+					elif modobot == "veterano":
+						cantou = False
+						tentativas = 0
+						while cantou == False:
+							cantada_valida = False
+							if inicio:
+								while cantada_valida == False:
+									linbot_canto = random.randint(1, grade)
+									colbot_canto = random.randint(1, grade)
+									if (linbot_canto, colbot_canto) not in jogadas_bot:
+										cantada_valida = True
+										jogadas_bot.append((linbot_canto, colbot_canto))
 
-					if inicio:
-						linbot_canto = random.randint(1, grade)
-						colbot_canto = random.randint(1, grade)
+								acerto_bot, completa = cantada(linbot_canto, colbot_canto, bancadaplayer, bancply_espelho, "BOT")
+								cantou = True
 
-						acerto_bot, completa = cantada(linbot_canto, colbot_canto, bancadaplayer, bancply_espelho, "BOT")
-						
-						if acerto_bot:
-							if completa:
-								inicio = True
-							else:
-								inicio = False
-								linha_partida = linbot_canto
-								coluna_partida = colbot_canto
-								extensao = False
-								direcao = random.randint(1, 2)
-								sentido = random.randint(1, 2)
-								tentativas_direcao = 0
-					else:
-						if extensao == False:
-							linbot_canto = linha_partida
-							colbot_canto = coluna_partida
-
-						if direcao == 1: #VERTICAL
-							if sentido == 1:#CIMA
-								linbot_canto -=1
-							elif sentido == 2:#BAIXO
-								linbot_canto += 1
-
-						elif direcao == 2: #HORIZONTAL
-							if sentido == 1:#ESQUERDA
-								colbot_canto -=1
-							elif sentido == 2:#DIREITA
-								colbot_canto += 1
-								
-						acerto_bot, completa = cantada(linbot_canto, colbot_canto, bancadaplayer, bancply_espelho, "BOT")
-                        
-						if completa:
-                            #VOLTA PARA AS CANTADAS ALEATORIAS
-							inicio = True
-							extensao = False
-						else:
-							if acerto_bot:
-								extensao = True
-							else:
-								if extensao == True:
-                                    # ACHOU O FIM DO LADO DE UMA PEÇA. INVERTE E SE EXTENDE PARA O OUTRO LADO
-									extensao = False
-									sentido = 2 if sentido == 1 else 1
-								else:
-									tentativas_direcao += 1
-                                    
-									if tentativas_direcao < 2:
-										sentido = 2 if sentido == 1 else 1
+								if acerto_bot:
+									if completa:
+										inicio = True
 									else:
-										direcao = 2 if direcao == 1 else 1
+										inicio = False
+										linha_partida = linbot_canto
+										coluna_partida = colbot_canto
+										extensao = False
+										direcao = random.randint(1, 2)
 										sentido = random.randint(1, 2)
 										tentativas_direcao = 0
+							else:
+								if extensao == False:
+									linbot_canto = linha_partida
+									colbot_canto = coluna_partida
+
+								if direcao == 1: #VERTICAL
+									if sentido == 1:#CIMA
+										linbot_canto -=1
+									elif sentido == 2:#BAIXO
+										linbot_canto += 1
+
+								elif direcao == 2: #HORIZONTAL
+									if sentido == 1:#ESQUERDA
+										colbot_canto -=1
+									elif sentido == 2:#DIREITA
+										colbot_canto += 1
+
+								#SE ELE ACERTAR UMA PEÇA PERTO DA BORDA E TENTAR CHUTAR DEPOIS OU ANTES DA GRADE ELE CONSIDERA AQUELA JOGADA COMO UM ERRO E NEM CANTA
+								if (linbot_canto<= 0 or linbot_canto > grade) or (colbot_canto <= 0 or colbot_canto > grade):
+									acerto_bot = False
+								else:
+									if (linbot_canto, colbot_canto) not in jogadas_bot:
+										cantada_valida = True
+										jogadas_bot.append((linbot_canto, colbot_canto))
+										acerto_bot, completa = cantada(linbot_canto, colbot_canto, bancadaplayer, bancply_espelho, "BOT")
+										cantou = True
+									else:
+										tentativas +=1
+										acerto_bot = False
+								if completa or tentativas == 4:
+									#VOLTA PARA AS CANTADAS ALEATORIAS
+									inicio = True
+									extensao = False
+								else:
+									if acerto_bot:
+										extensao = True
+									else:
+										if extensao == True:
+											# ACHOU O FIM DO LADO DE UMA PEÇA. INVERTE E SE EXTENDE PARA O OUTRO LADO
+											extensao = False
+											if sentido == 1:
+												sentido = 2 
+											else:
+												sentido = 1
+										else:
+											tentativas_direcao += 1
+											
+											if tentativas_direcao < 2:
+												if sentido == 1:
+													sentido = 2 
+												else:
+													sentido = 1
+											else:
+												if direcao == 1:
+													direcao = 2
+												else:
+													direcao = 1
+												sentido = random.randint(1, 2)
+												tentativas_direcao = 0
 
 				if pontos_player < 0:
 					pontos_player = 0
@@ -819,14 +877,7 @@ while menu:
 			exibirbancada(bancadabot)
 
 		case 2:
-			print("|REGRAS DO JOGO|\
-				  \n- O objetivo é descobrir todas as peças escondidas na bancada do adversário\n antes que ele descubra as suas.\
-			    \n\n- A bancada é quadrada. O tamanho determina quantas peças cada jogador terá;\n no modo automático, elas são posicionadas aleatoriamente.\
-			    \n\n- As peças ocupam casas consecutivas: @ ocupa 1 casa, # ocupa 2, $ ocupa 3 e % ocupa 4.\n Peças não podem se sobrepor nem ultrapassar os limites da bancada.\
-			    \n\n- Em cada rodada, o jogador escolhe uma posição para tentar acertar.\n Depois, o bot também faz uma tentativa.\
-			    \n\n- Cada acerto vale 10 pontos. Ao descobrir uma peça inteira, ganha-se mais 50 pontos.\n Cada erro desconta 5 pontos.\
-			    \n\n- O Olho Clínico revela quantas partes de peças existem ao redor da posição escolhida.\n Cada uso custa 30 pontos e a quantidade de usos depende do tamanho da bancada.\
-			    \n\n- A partida termina quando todas as peças de um dos lados forem descobertas.\n Quem ainda tiver peças escondidas vence. O jogador também pode desistir.\n")
+			regras()
 		case 3:
 			#SE EU FIZER « pontuacao_copia = partidas["pontuacao"] », pontuacao_copia vai ser uma referência
 			#de partidas["pontuacao"]. Logo, ao alterar o valor de partidas["pontuacao"] também vai alterar pontuacao_copia.
@@ -840,7 +891,7 @@ while menu:
 			else:
 				for i in range(len(partidas["pontuacao"])):
 					maior_indice = 0
-					maior_pontuacao = 0
+					maior_pontuacao = -1
 					for e in partidas["pontuacao"]:
 						if e > maior_pontuacao:
 							maior_indice = partidas["pontuacao"].index(e)
